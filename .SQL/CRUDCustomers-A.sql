@@ -92,10 +92,9 @@ CREATE OR REPLACE PROCEDURE list_all_customers(
 IS
 BEGIN
     OPEN p_cursor FOR
-        SELECT * FROM customers_fragmented_db1
-        UNION ALL
-        SELECT * FROM customers_db2;
+        SELECT * FROM (
+            SELECT * FROM customers_fragmented_db1
+            UNION ALL
+            SELECT * FROM customers_db2
+        ) ORDER BY CUSTOMER_ID;
 END list_all_customers;
-
-
-
