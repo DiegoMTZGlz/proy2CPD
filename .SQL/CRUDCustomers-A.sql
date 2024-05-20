@@ -29,6 +29,7 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20001, 'Región no válida. Las regiones válidas son A, B, C o D.');
     END IF;
 END create_customer;
+/
 
 CREATE OR REPLACE PROCEDURE update_customer(
     p_customer_id IN NUMBER,
@@ -61,7 +62,7 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20001, 'Región no válida. Las regiones válidas son A, B, C o D.');
     END IF;
 END update_customer;
-
+/
 
 CREATE OR REPLACE PROCEDURE delete_customer(
     p_customer_id IN NUMBER
@@ -85,6 +86,7 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20002, 'El cliente con ID ' || TO_CHAR(p_customer_id) || ' no se encontró en ninguna región.');
     END IF;
 END delete_customer;
+/
 
 CREATE OR REPLACE PROCEDURE list_all_customers(
     p_cursor OUT SYS_REFCURSOR
@@ -98,3 +100,4 @@ BEGIN
             SELECT * FROM customers_db2
         ) ORDER BY CUSTOMER_ID;
 END list_all_customers;
+/
