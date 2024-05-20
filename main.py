@@ -24,8 +24,8 @@ def clear_entries(frame):
                 widget.insert(0, datetime.datetime.now().strftime("%S"))
 
 def conexion():
-    usuario = "C##SERVERA"
-    contraseña = "ADMIN"
+    usuario = "SYSTEM"
+    contraseña = "12345"
     host = "localhost"
     puerto = "1521"
     servicio = "FREE"
@@ -874,6 +874,673 @@ O_D_BTNEliminar.grid(row=2, column=0, pady=20)
 O_D_BTNLimpiar = tk.Button(orders_delete, text="LIMPIAR", command=lambda: clear_entries(orders_delete))
 O_D_BTNLimpiar.grid(row=2, column=1, pady=20)
 
+# ================================ ORDER ITEMS y PRODUCTS ================================== #
+
+# =================================== PRODUCTS (CREATE) =================================== #
+
+def create_product():
+    product_id = P_C_ProductID.get()
+    product_name = P_C_ProductName.get()
+    product_description = P_C_ProductDescription.get()
+    category_id = P_C_CategoryID.get()
+    weight_class = P_C_WeightClass.get()
+    warranty_period = P_C_WarrantyPeriod.get()
+    supplier_id = P_C_SupplierID.get()
+    product_status = P_C_ProductStatus.get()
+    list_price = P_C_ListPrice.get()
+    min_price = P_C_MinPrice.get()
+    catalog_url = P_C_CatalogURL.get()
+    
+    try:
+        # Conectarse a Oracle
+        connection = conexion()
+        if connection is None:
+            return
+
+        # Llamar al procedimiento almacenado para crear el producto
+        cursor = connection.cursor()
+        cursor.callproc("create_product_information", [product_id, product_name, product_description, category_id, weight_class, warranty_period, supplier_id, product_status, list_price, min_price, catalog_url])
+
+        # Hacer commit de la transacción
+        connection.commit()
+
+        # Cerrar el cursor y la conexión
+        cursor.close()
+        connection.close()
+
+        print("Producto creado exitosamente")
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+
+
+tk.Label(products_create, text="Product ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+P_C_ProductID = tk.Entry(products_create)
+P_C_ProductID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Product Name:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+P_C_ProductName = tk.Entry(products_create)
+P_C_ProductName.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Product Description:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+P_C_ProductDescription = tk.Entry(products_create)
+P_C_ProductDescription.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Category ID:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+P_C_CategoryID = tk.Entry(products_create)
+P_C_CategoryID.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Weight Class:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+P_C_WeightClass = tk.Entry(products_create)
+P_C_WeightClass = ttk.Combobox(products_create, values=[1, 0], width=5, state="readonly")
+P_C_WeightClass.grid(row=4, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Warranty Period:").grid(row=5, column=0, padx=10, pady=10, sticky='e')
+P_C_WarrantyPeriod = tk.Entry(products_create)
+P_C_WarrantyPeriod.grid(row=5, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Supplier ID:").grid(row=6, column=0, padx=10, pady=10, sticky='e')
+P_C_SupplierID = tk.Entry(products_create)
+P_C_SupplierID.grid(row=6, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Product Status:").grid(row=7, column=0, padx=10, pady=10, sticky='e')
+P_C_ProductStatus = tk.Entry(products_create)
+P_C_ProductStatus.grid(row=7, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="List Price:").grid(row=8, column=0, padx=10, pady=10, sticky='e')
+P_C_ListPrice = tk.Entry(products_create)
+P_C_ListPrice.grid(row=8, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Min Price:").grid(row=9, column=0, padx=10, pady=10, sticky='e')
+P_C_MinPrice = tk.Entry(products_create)
+P_C_MinPrice.grid(row=9, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_create, text="Catalog URL:").grid(row=10, column=0, padx=10, pady=10, sticky='e')
+P_C_CatalogURL = tk.Entry(products_create)
+P_C_CatalogURL.grid(row=10, column=1, padx=10, pady=10, sticky='w')
+
+P_C_BTNCrear = tk.Button(products_create, text="CREAR", command=create_product)
+P_C_BTNCrear.grid(row=11, column=0, pady=20)
+
+P_C_BTNLimpiar = tk.Button(products_create, text="LIMPIAR", command=lambda: clear_entries(products_create))
+P_C_BTNLimpiar.grid(row=11, column=1, pady=20)
+
+
+# ========================================================================================= #
+
+
+# =================================== PRODUCTS (UPDATE) =================================== #
+
+def search_product():
+    connection = conexion()
+    if connection is None:
+        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        return
+
+    product_id = P_U_ProductID.get()
+    
+    if not product_id:
+        messagebox.showwarning("Advertencia", "Por favor, ingrese un Product ID.")
+        return
+
+    try:
+        cursor = connection.cursor()
+        query = """
+        SELECT Product_ID, Product_Name, Product_Description, Category_ID, Weight_Class, Warranty_Period, Supplier_ID, Product_Status, List_Price, Min_Price, Catalog_URL
+        FROM product_information
+        WHERE Product_ID = :product_id
+        """
+        cursor.execute(query, product_id=product_id)
+        result = cursor.fetchone()
+        
+        if result:
+            P_U_ProductName.delete(0, tk.END)
+            P_U_ProductName.insert(0, result[1])
+            
+            P_U_ProductDescription.delete(0, tk.END)
+            P_U_ProductDescription.insert(0, result[2])
+            
+            P_U_CategoryID.delete(0, tk.END)
+            P_U_CategoryID.insert(0, result[3])
+            
+            P_U_WeightClass.delete(0, tk.END)
+            P_U_WeightClass.insert(0, result[4])
+            
+            P_U_WarrantyPeriod.delete(0, tk.END)
+            P_U_WarrantyPeriod.insert(0, result[5])
+            
+            P_U_SupplierID.delete(0, tk.END)
+            P_U_SupplierID.insert(0, result[6])
+            
+            P_U_ProductStatus.delete(0, tk.END)
+            P_U_ProductStatus.insert(0, result[7])
+            
+            P_U_ListPrice.delete(0, tk.END)
+            P_U_ListPrice.insert(0, result[8])
+            
+            P_U_MinPrice.delete(0, tk.END)
+            P_U_MinPrice.insert(0, result[9])
+            
+            P_U_CatalogURL.delete(0, tk.END)
+            P_U_CatalogURL.insert(0, result[10])
+        else:
+            messagebox.showinfo("Información", "No se encontró ningún producto con ese ID.")
+    except oracledb.DatabaseError as error:
+        messagebox.showerror("Error", f"Error al buscar el producto: {error}")
+    finally:
+        if connection:
+            connection.close()
+
+def update_product():
+    product_id = P_U_ProductID.get()
+    product_name = P_U_ProductName.get()
+    product_description = P_U_ProductDescription.get()
+    category_id = P_U_CategoryID.get()
+    weight_class = P_U_WeightClass.get()
+    warranty_period = P_U_WarrantyPeriod.get()
+    supplier_id = P_U_SupplierID.get()
+    product_status = P_U_ProductStatus.get()
+    list_price = P_U_ListPrice.get()
+    min_price = P_U_MinPrice.get()
+    catalog_url = P_U_CatalogURL.get()
+    
+    try:
+        # Conectarse a Oracle
+        connection = conexion()
+        if connection is None:
+            return
+
+        # Llamar al procedimiento almacenado para actualizar el producto
+        cursor = connection.cursor()
+        cursor.callproc("update_product_information", [product_id, product_name, product_description, category_id, weight_class, warranty_period, supplier_id, product_status, list_price, min_price, catalog_url])
+
+        # Hacer commit de la transacción
+        connection.commit()
+
+        # Cerrar el cursor y la conexión
+        cursor.close()
+        connection.close()
+
+        print("Producto actualizado exitosamente")
+        clear_entries(products_update)
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+
+        # Mostrar mensaje de error en una ventana emergente
+        messagebox.showerror("Error", f"Error al actualizar el producto: {error}")
+
+
+tk.Label(products_update, text="Product ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+P_U_ProductID = tk.Entry(products_update)
+P_U_ProductID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+P_U_BTNBuscar = tk.Button(products_update, text="BUSCAR", command=search_product)
+P_U_BTNBuscar.grid(row=0, column=2, columnspan=2, pady=10)
+
+tk.Label(products_update, text="Product Name:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+P_U_ProductName = tk.Entry(products_update)
+P_U_ProductName.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Product Description:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+P_U_ProductDescription = tk.Entry(products_update)
+P_U_ProductDescription.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Category ID:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+P_U_CategoryID = tk.Entry(products_update)
+P_U_CategoryID.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Weight Class:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+P_U_WeightClass = tk.Entry(products_update)
+P_U_WeightClass.grid(row=4, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Warranty Period:").grid(row=5, column=0, padx=10, pady=10, sticky='e')
+P_U_WarrantyPeriod = tk.Entry(products_update)
+P_U_WarrantyPeriod.grid(row=5, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Supplier ID:").grid(row=6, column=0, padx=10, pady=10, sticky='e')
+P_U_SupplierID = tk.Entry(products_update)
+P_U_SupplierID.grid(row=6, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Product Status:").grid(row=7, column=0, padx=10, pady=10, sticky='e')
+P_U_ProductStatus = tk.Entry(products_update)
+P_U_ProductStatus.grid(row=7, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="List Price:").grid(row=8, column=0, padx=10, pady=10, sticky='e')
+P_U_ListPrice = tk.Entry(products_update)
+P_U_ListPrice.grid(row=8, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Min Price:").grid(row=9, column=0, padx=10, pady=10, sticky='e')
+P_U_MinPrice = tk.Entry(products_update)
+P_U_MinPrice.grid(row=9, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(products_update, text="Catalog URL:").grid(row=10, column=0, padx=10, pady=10, sticky='e')
+P_U_CatalogURL = tk.Entry(products_update)
+P_U_CatalogURL.grid(row=10, column=1, padx=10, pady=10, sticky='w')
+
+P_U_BTNActualizar = tk.Button(products_update, text="ACTUALIZAR", command=update_product)
+P_U_BTNActualizar.grid(row=11, column=0, pady=20)
+
+P_U_BTNLimpiar = tk.Button(products_update, text="LIMPIAR", command=lambda: clear_entries(products_update))
+P_U_BTNLimpiar.grid(row=11, column=1, pady=20)
+
+# ========================================================================================== #
+
+
+# ==================================== PRODUCTS (READ) ==================================== #
+
+def list_all_products():
+    try:
+        connection = conexion()
+        if connection is None:
+            return
+
+        cursor = connection.cursor()
+
+        p_cursor = cursor.var(oracledb.CURSOR)
+
+        # Ejecutar el procedimiento almacenado
+        cursor.callproc("list_product_information", [p_cursor])
+
+        result = p_cursor.getvalue().fetchall()
+
+        return result
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+        return None
+    
+def show_products():
+    # Obtener los productos
+    products = list_all_products()
+
+    if products:
+        # Limpiar la tabla
+        for row in P_R_Tabla.get_children():
+            P_R_Tabla.delete(row)
+
+        # Agregar los productos a la tabla
+        for product in products:
+            P_R_Tabla.insert("", "end", values=product)
+
+# Tabla de Productos
+P_R_Tabla = ttk.Treeview(products_read, columns=("Product ID", "Product Name", "Product Description", "Category ID", "Weight Class", "Warranty Period", "Supplier ID", "Product Status", "List Price", "Min Price", "Catalog URL"), show="headings")
+P_R_Tabla.heading("Product ID", text="Product ID")
+P_R_Tabla.heading("Product Name", text="Product Name")
+P_R_Tabla.heading("Product Description", text="Product Description")
+P_R_Tabla.heading("Category ID", text="Category ID")
+P_R_Tabla.heading("Weight Class", text="Weight Class")
+P_R_Tabla.heading("Warranty Period", text="Warranty Period")
+P_R_Tabla.heading("Supplier ID", text="Supplier ID")
+P_R_Tabla.heading("Product Status", text="Product Status")
+P_R_Tabla.heading("List Price", text="List Price")
+P_R_Tabla.heading("Min Price", text="Min Price")
+P_R_Tabla.heading("Catalog URL", text="Catalog URL")
+P_R_Tabla.grid(row=0, column=0, sticky="nsew")
+
+# Ajustar el ancho de las columnas
+column_widths = [100, 150, 200, 100, 100, 120, 100, 120, 100, 100, 200]  # Ancho de las columnas
+for col, width in zip(P_R_Tabla["columns"], column_widths):
+    P_R_Tabla.column(col, width=width)
+
+# Barra de desplazamiento vertical
+scrollbar = ttk.Scrollbar(products_read, orient="vertical", command=P_R_Tabla.yview)
+scrollbar.grid(row=0, column=1, sticky="ns")
+P_R_Tabla.configure(yscrollcommand=scrollbar.set)
+
+# Botón para cargar/actualizar productos
+load_button = ttk.Button(products_read, text="Cargar/Actualizar Productos", command=show_products)
+load_button.grid(row=1, column=0, sticky="ew")
+
+# ========================================================================================== #
+
+
+# =================================== PRODUCTS (DELETE) ==================================== #
+
+def delete_product():
+    connection = conexion()
+    if connection is None:
+        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        return
+
+    product_id = P_D_ProductID.get()
+    
+    if not product_id:
+        messagebox.showwarning("Advertencia", "Por favor, ingrese un Product ID.")
+        return
+
+    try:
+        cursor = connection.cursor()
+        query = """
+        SELECT PRODUCT_ID, PRODUCT_NAME, PRODUCT_DESCRIPTION, CATEGORY_ID, 
+               WEIGHT_CLASS, WARRANTY_PERIOD, SUPPLIER_ID, PRODUCT_STATUS, 
+               LIST_PRICE, MIN_PRICE, CATALOG_URL
+        FROM PRODUCT_INFORMATION
+        WHERE PRODUCT_ID = :product_id
+        """
+        cursor.execute(query, product_id=product_id)
+        result = cursor.fetchone()
+        
+        if result:
+            # Mostrar los datos del producto
+            msg = f"ID: {result[0]}\nNombre: {result[1]}\nDescripción: {result[2]}\nCategoría ID: {result[3]}\nClase de Peso: {result[4]}\nPeriodo de Garantía: {result[5]}\nID del Proveedor: {result[6]}\nEstado del Producto: {result[7]}\nPrecio de Lista: {result[8]}\nPrecio Mínimo: {result[9]}\nURL del Catálogo: {result[10]}"
+            confirm_delete = messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que quieres eliminar el siguiente producto?\n\n{msg}")
+            if confirm_delete:
+                # Eliminar el producto de la base de datos
+                cursor.callproc("delete_product_information", [product_id])
+                connection.commit()
+                messagebox.showinfo("Información", f"Producto con ID {product_id} eliminado correctamente.")
+                # Limpiar los campos después de la eliminación
+                clear_entries(products_delete)
+        else:
+            messagebox.showinfo("Información", "No se encontró ningún producto con ese ID.")
+    except oracledb.DatabaseError as error:
+        messagebox.showerror("Error", f"Error al buscar o eliminar el producto: {error}")
+    finally:
+        if connection:
+            connection.close()
+
+tk.Label(products_delete, text="Product ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+P_D_ProductID = tk.Entry(products_delete)
+P_D_ProductID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+P_D_BTNEliminar = tk.Button(products_delete, text="ELIMINAR", command=delete_product)
+P_D_BTNEliminar.grid(row=2, column=0, pady=20)
+
+P_D_BTNLimpiar = tk.Button(products_delete, text="LIMPIAR", command=lambda: clear_entries(products_delete))
+P_D_BTNLimpiar.grid(row=2, column=1, pady=20)
+
+# ========================================================================================== #
+
+# =================================== ITEMS (CREATE) =================================== #
+
+def create_order_item():
+    order_id = OI_C_OrderID.get()
+    line_item_id = OI_C_LineItemID.get()
+    product_id = OI_C_ProductID.get()
+    unit_price = OI_C_UnitPrice.get()
+    quantity = OI_C_Quantity.get()
+    
+    try:
+        # Conectarse a Oracle
+        connection = conexion()
+        if connection is None:
+            return
+
+        # Llamar al procedimiento almacenado para crear el elemento del pedido
+        cursor = connection.cursor()
+        cursor.callproc("create_order_item", [order_id, line_item_id, product_id, unit_price, quantity])
+
+        # Hacer commit de la transacción
+        connection.commit()
+
+        # Cerrar el cursor y la conexión
+        cursor.close()
+        connection.close()
+
+        print("Elemento del pedido creado exitosamente")
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+
+
+tk.Label(items_create, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+OI_C_OrderID = tk.Entry(items_create)
+OI_C_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_create, text="Line Item ID:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+OI_C_LineItemID = tk.Entry(items_create)
+OI_C_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_create, text="Product ID:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+OI_C_ProductID = tk.Entry(items_create)
+OI_C_ProductID.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_create, text="Unit Price:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+OI_C_UnitPrice = tk.Entry(items_create)
+OI_C_UnitPrice.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_create, text="Quantity:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+OI_C_Quantity = tk.Entry(items_create)
+OI_C_Quantity.grid(row=4, column=1, padx=10, pady=10, sticky='w')
+
+OI_C_BTNCrear = tk.Button(items_create, text="CREAR", command=create_order_item)
+OI_C_BTNCrear.grid(row=5, column=0, pady=20)
+
+# ======================================================================================== #
+
+# ==================================== ITEMS (READ) ====================================== #
+
+def list_all_order_items():
+    try:
+        connection = conexion()
+        if connection is None:
+            return
+
+        cursor = connection.cursor()
+
+        oi_cursor = cursor.var(oracledb.CURSOR)
+
+        # Ejecutar el procedimiento almacenado
+        cursor.callproc("list_order_items", [oi_cursor])
+
+        result = oi_cursor.getvalue().fetchall()
+
+        return result
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+        return None
+    
+def show_order_items():
+    # Obtener los elementos del pedido
+    order_items = list_all_order_items()
+
+    if order_items:
+        # Limpiar la tabla
+        for row in OI_R_Tabla.get_children():
+            OI_R_Tabla.delete(row)
+
+        # Agregar los elementos del pedido a la tabla
+        for order_item in order_items:
+            OI_R_Tabla.insert("", "end", values=order_item)
+
+# Tabla de Elementos del Pedido
+OI_R_Tabla = ttk.Treeview(items_read, columns=("Order ID", "Line Item ID", "Product ID", "Unit Price", "Quantity"), show="headings")
+OI_R_Tabla.heading("Order ID", text="Order ID")
+OI_R_Tabla.heading("Line Item ID", text="Line Item ID")
+OI_R_Tabla.heading("Product ID", text="Product ID")
+OI_R_Tabla.heading("Unit Price", text="Unit Price")
+OI_R_Tabla.heading("Quantity", text="Quantity")
+OI_R_Tabla.grid(row=0, column=0, sticky="nsew")
+
+# Ajustar el ancho de las columnas
+column_widths = [100, 100, 100, 100, 100]  # Ancho de las columnas
+for col, width in zip(OI_R_Tabla["columns"], column_widths):
+    OI_R_Tabla.column(col, width=width)
+
+# Barra de desplazamiento vertical
+scrollbar = ttk.Scrollbar(items_read, orient="vertical", command=OI_R_Tabla.yview)
+scrollbar.grid(row=0, column=1, sticky="ns")
+OI_R_Tabla.configure(yscrollcommand=scrollbar.set)
+
+# Botón para cargar/actualizar elementos del pedido
+load_button = ttk.Button(items_read, text="Cargar/Actualizar Elementos del Pedido", command=show_order_items)
+load_button.grid(row=1, column=0, sticky="ew")
+
+# ========================================================================================== #
+
+# ==================================== ITEMS (UPDATE) ====================================== #
+
+def search_order_item():
+    connection = conexion()
+    if connection is None:
+        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        return
+
+    order_id = OI_U_OrderID.get()
+    line_item_id = OI_U_LineItemID.get()
+    
+    if not order_id or not line_item_id:
+        messagebox.showwarning("Advertencia", "Por favor, ingrese un Order ID y un Line Item ID.")
+        return
+
+    try:
+        cursor = connection.cursor()
+        query = """
+        SELECT ORDER_ID, LINE_ITEM_ID, PRODUCT_ID, UNIT_PRICE, QUANTITY
+        FROM ORDER_ITEMS
+        WHERE ORDER_ID = :order_id AND LINE_ITEM_ID = :line_item_id
+        """
+        cursor.execute(query, order_id=order_id, line_item_id=line_item_id)
+        result = cursor.fetchone()
+        
+        if result:
+            OI_U_ProductID.delete(0, tk.END)
+            OI_U_ProductID.insert(0, result[2])
+            
+            OI_U_UnitPrice.delete(0, tk.END)
+            OI_U_UnitPrice.insert(0, result[3])
+            
+            OI_U_Quantity.delete(0, tk.END)
+            OI_U_Quantity.insert(0, result[4])
+        else:
+            messagebox.showinfo("Información", "No se encontró ningún elemento del pedido con esos IDs.")
+    except oracledb.DatabaseError as error:
+        messagebox.showerror("Error", f"Error al buscar el elemento del pedido: {error}")
+    finally:
+        if connection:
+            connection.close()
+
+def update_order_item():
+    order_id = OI_U_OrderID.get()
+    line_item_id = OI_U_LineItemID.get()
+    product_id = OI_U_ProductID.get()
+    unit_price = OI_U_UnitPrice.get()
+    quantity = OI_U_Quantity.get()
+    
+    try:
+        # Conectarse a Oracle
+        connection = conexion()
+        if connection is None:
+            return
+
+        # Llamar al procedimiento almacenado para actualizar el elemento del pedido
+        cursor = connection.cursor()
+        cursor.callproc("update_order_item", [order_id, line_item_id, product_id, unit_price, quantity])
+
+        # Hacer commit de la transacción
+        connection.commit()
+
+        # Cerrar el cursor y la conexión
+        cursor.close()
+        connection.close()
+
+        print("Elemento del pedido actualizado exitosamente")
+        clear_entries(items_update)
+
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
+        print("Error al conectar a Oracle:", error)
+
+        # Mostrar mensaje de error en una ventana emergente
+        messagebox.showerror("Error", f"Error al actualizar el elemento del pedido: {error}")
+
+
+# Etiquetas y campos de entrada para Order ID, Line Item ID, Product ID, Unit Price y Quantity
+tk.Label(items_update, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+OI_U_OrderID = tk.Entry(items_update)
+OI_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+OI_U_BTNBuscar = tk.Button(items_update, text="BUSCAR", command=search_order_item)
+OI_U_BTNBuscar.grid(row=0, column=2, columnspan=2, pady=10)
+
+
+tk.Label(items_update, text="Line Item ID:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+OI_U_LineItemID = tk.Entry(items_update)
+OI_U_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_update, text="Product ID:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+OI_U_ProductID = tk.Entry(items_update)
+OI_U_ProductID.grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_update, text="Unit Price:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+OI_U_UnitPrice = tk.Entry(items_update)
+OI_U_UnitPrice.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_update, text="Quantity:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+OI_U_Quantity = tk.Entry(items_update)
+OI_U_Quantity.grid(row=4, column=1, padx=10, pady=10, sticky='w')
+
+# Botones para actualizar y limpiar campos
+OI_U_BTNActualizar = tk.Button(items_update, text="ACTUALIZAR", command=update_order_item)
+OI_U_BTNActualizar.grid(row=5, column=0, pady=20)
+
+OI_U_BTNLimpiar = tk.Button(items_update, text="LIMPIAR", command=lambda: clear_entries(items_update))
+OI_U_BTNLimpiar.grid(row=5, column=1, pady=20)
+
+# ========================================================================================== #
+
+def delete_order_item():
+    connection = conexion()
+    if connection is None:
+        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        return
+
+    order_id = O_D_OrderID.get()
+    line_item_id = O_D_LineItemID.get()
+    
+    if not order_id or not line_item_id:
+        messagebox.showwarning("Advertencia", "Por favor, ingrese un Order ID y Line Item ID.")
+        return
+
+    try:
+        cursor = connection.cursor()
+        query = """
+        SELECT ORDER_ID, LINE_ITEM_ID, PRODUCT_ID, UNIT_PRICE, QUANTITY
+        FROM order_items
+        WHERE ORDER_ID = :order_id AND LINE_ITEM_ID = :line_item_id
+        """
+        cursor.execute(query, order_id=order_id, line_item_id=line_item_id)
+        result = cursor.fetchone()
+        
+        if result:
+            # Mostrar los datos del elemento del pedido
+            msg = f"Order ID: {result[0]}\nLine Item ID: {result[1]}\nProduct ID: {result[2]}\nUnit Price: {result[3]}\nQuantity: {result[4]}"
+            confirm_delete = messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que quieres eliminar el siguiente registro?\n\n{msg}")
+            if confirm_delete:
+                # Eliminar el elemento del pedido de la base de datos
+                cursor.callproc("delete_order_item", [order_id, line_item_id])
+                connection.commit()
+                messagebox.showinfo("Información", f"Elemento del pedido con Order ID {order_id} y Line Item ID {line_item_id} eliminado correctamente.")
+                # Limpiar los campos después de la eliminación
+                clear_entries(items_delete)
+        else:
+            messagebox.showinfo("Información", "No se encontró ningún elemento del pedido con ese Order ID y Line Item ID.")
+    except oracledb.DatabaseError as error:
+        messagebox.showerror("Error", f"Error al buscar o eliminar el elemento del pedido: {error}")
+    finally:
+        if connection:
+            connection.close()
+
+# Etiquetas y campos de entrada para Order ID y Line Item ID
+tk.Label(items_delete, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+O_D_OrderID = tk.Entry(items_delete)
+O_D_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+tk.Label(items_delete, text="Line Item ID:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+O_D_LineItemID = tk.Entry(items_delete)
+O_D_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+# Botones para eliminar y limpiar campos
+O_D_BTNEliminar = tk.Button(items_delete, text="ELIMINAR", command=delete_order_item)
+O_D_BTNEliminar.grid(row=2, column=0, pady=20)
+
+O_D_BTNLimpiar = tk.Button(items_delete, text="LIMPIAR", command=lambda: clear_entries(items_delete))
+O_D_BTNLimpiar.grid(row=2, column=1, pady=20)
 # ========================================================================================== #
 
 # ====================================== VALIDACIONES ====================================== #
@@ -889,6 +1556,24 @@ O_C_Promocion.config(validate="key", validatecommand=(validation, "%P"))
 O_U_CustomerID.config(validate="key", validatecommand=(validation, "%P"))
 O_U_Representate.config(validate="key", validatecommand=(validation, "%P"))
 O_U_Promocion.config(validate="key", validatecommand=(validation, "%P"))
+P_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+P_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+
+def val_category_id(entry_text):
+    return entry_text.isdigit() and len(entry_text) <= 2 or entry_text == ""
+validation = root.register(val_customer_id)
+P_C_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
+P_U_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
+
+def val_weight_class(entry_text):
+    return entry_text.isdigit() and len(entry_text) <= 1 or entry_text == ""
+validation = root.register(val_customer_id)
+P_C_WeightClass.config(validate="key", validatecommand=(validation, "%P"))
+P_U_WeightClass.config(validate="key", validatecommand=(validation, "%P"))
+
 
 def val_order_id(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 12 or entry_text == ""
