@@ -24,8 +24,8 @@ def clear_entries(frame):
                 widget.insert(0, datetime.datetime.now().strftime("%S"))
 
 def conexion():
-    usuario = "SYSTEM"
-    contraseña = "12345"
+    usuario = "C##SERVERA"
+    contraseña = "ADMIN"
     host = "localhost"
     puerto = "1521"
     servicio = "FREE"
@@ -37,11 +37,27 @@ def conexion():
     except oracledb.DatabaseError as error:
         print("Error al conectar a la base de datos:", error)
         return None
+    
+def apply_custom_styles():
+    style = ttk.Style()
+    
+    # Configuración del estilo de los widgets
+    style.theme_use('clam')  # Utiliza el tema 'clam' de ttk, que es más neutral en términos de color
+    style.configure('.', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  # Cambia la fuente y colores
+    
+    # Configuración específica de algunos widgets
+    style.configure('TButton', font=('Helvetica', 12), foreground='white', background='#007ACC')  # Estilo para los botones
+    style.map('TButton', background=[('active', '#005f91')])  # Cambia el color de fondo al pasar el ratón por encima
+    
+    # Estilos para otras clases de widgets
+    style.configure('TEntry', font=('Helvetica', 12), fieldbackground='white', foreground='black')  # Estilo para las entradas
+    style.configure('TNotebook', tabposition='n', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  # Estilo para los notebooks
+    style.configure('TFrame', background='#F0F0F0')  # Estilo para los frames
 
 # Crear la ventana principal
 root = tk.Tk()
 root.title("Proyecto 2")
-root.geometry("1430x480")
+root.geometry("1055x600")
 # Crear el notebook principal
 main_notebook = ttk.Notebook(root)
 main_notebook.pack(fill='both', expand=True)
@@ -743,8 +759,8 @@ O_U_OrderID = tk.Entry(orders_update)
 O_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
 # Agregar un botón de búsqueda al lado del campo Order ID
-search_button = tk.Button(orders_update, text="Buscar", command=search_order)
-search_button.grid(row=0, column=2, sticky='w')  # Ajusta sticky a 'w' para que el botón esté a la izquierda del campo Order ID
+search_button = tk.Button(orders_update, text="BUSCAR", command=search_order)
+search_button.grid(row=0, column=1, padx=150, sticky='w')  # Ajusta sticky a 'w' para que el botón esté a la izquierda del campo Order ID
 
 # Fecha
 tk.Label(orders_update, text="Fecha:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
@@ -1167,21 +1183,21 @@ def show_products():
 
 # Tabla de Productos
 P_R_Tabla = ttk.Treeview(products_read, columns=("Product ID", "Product Name", "Product Description", "Category ID", "Weight Class", "Warranty Period", "Supplier ID", "Product Status", "List Price", "Min Price", "Catalog URL"), show="headings")
-P_R_Tabla.heading("Product ID", text="Product ID")
-P_R_Tabla.heading("Product Name", text="Product Name")
-P_R_Tabla.heading("Product Description", text="Product Description")
-P_R_Tabla.heading("Category ID", text="Category ID")
-P_R_Tabla.heading("Weight Class", text="Weight Class")
-P_R_Tabla.heading("Warranty Period", text="Warranty Period")
-P_R_Tabla.heading("Supplier ID", text="Supplier ID")
-P_R_Tabla.heading("Product Status", text="Product Status")
-P_R_Tabla.heading("List Price", text="List Price")
-P_R_Tabla.heading("Min Price", text="Min Price")
-P_R_Tabla.heading("Catalog URL", text="Catalog URL")
+P_R_Tabla.heading("Product ID", text="ID")
+P_R_Tabla.heading("Product Name", text="Nombre")
+P_R_Tabla.heading("Product Description", text="Descripción")
+P_R_Tabla.heading("Category ID", text="Categoría")
+P_R_Tabla.heading("Weight Class", text="Peso")
+P_R_Tabla.heading("Warranty Period", text="Garantía")
+P_R_Tabla.heading("Supplier ID", text="ID Provedor")
+P_R_Tabla.heading("Product Status", text="Estatus")
+P_R_Tabla.heading("List Price", text="Precio")
+P_R_Tabla.heading("Min Price", text="Precio Min.")
+P_R_Tabla.heading("Catalog URL", text="URL")
 P_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
 # Ajustar el ancho de las columnas
-column_widths = [100, 150, 200, 100, 100, 120, 100, 120, 100, 100, 200]  # Ancho de las columnas
+column_widths = [60, 150, 150, 60, 60, 60, 100, 120, 60, 60, 150]  # Ancho de las columnas
 for col, width in zip(P_R_Tabla["columns"], column_widths):
     P_R_Tabla.column(col, width=width)
 
@@ -1351,11 +1367,11 @@ def show_order_items():
 
 # Tabla de Elementos del Pedido
 OI_R_Tabla = ttk.Treeview(items_read, columns=("Order ID", "Line Item ID", "Product ID", "Unit Price", "Quantity"), show="headings")
-OI_R_Tabla.heading("Order ID", text="Order ID")
-OI_R_Tabla.heading("Line Item ID", text="Line Item ID")
-OI_R_Tabla.heading("Product ID", text="Product ID")
-OI_R_Tabla.heading("Unit Price", text="Unit Price")
-OI_R_Tabla.heading("Quantity", text="Quantity")
+OI_R_Tabla.heading("Order ID", text="ID Orden")
+OI_R_Tabla.heading("Line Item ID", text="ID Objeto")
+OI_R_Tabla.heading("Product ID", text="ID Producto")
+OI_R_Tabla.heading("Unit Price", text="Precio")
+OI_R_Tabla.heading("Quantity", text="Cantidad")
 OI_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
 # Ajustar el ancho de las columnas
@@ -1482,7 +1498,7 @@ OI_U_BTNActualizar.grid(row=5, column=0, pady=20)
 OI_U_BTNLimpiar = tk.Button(items_update, text="LIMPIAR", command=lambda: clear_entries(items_update))
 OI_U_BTNLimpiar.grid(row=5, column=1, pady=20)
 
-# ========================================================================================== #
+# ===================================== ITEM (DELETE) ====================================== #
 
 def delete_order_item():
     connection = conexion()
@@ -1621,5 +1637,5 @@ validation = root.register(val_ingresos)
 C_C_Ingresos.config(validate="key", validatecommand=(validation, "%P"))
 C_U_Ingresos.config(validate="key", validatecommand=(validation, "%P"))
 # ========================================================================================== #
-
+apply_custom_styles()
 root.mainloop()
