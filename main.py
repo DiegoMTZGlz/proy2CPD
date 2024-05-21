@@ -136,28 +136,32 @@ def create_customer():
     correo = C_C_Correo.get()
     ingresos = C_C_Ingresos.get()
     region = C_C_Region.get()
+    
     try:
-        
-
         connection = conexion()
         if connection is None:
             return
 
         cursor = connection.cursor()
-        cursor.callproc("create_customer", [customer_id, nombre, apellido, credito, correo, ingresos, region])
-
-
-        connection.commit()
-
+        
+        # Verificar si el cliente ya existe
+        cursor.execute("SELECT COUNT(*) FROM customers WHERE CUSTOMER_ID = :customer_id", {"customer_id": customer_id})
+        count = cursor.fetchone()[0]
+        
+        if count == 0:
+            cursor.callproc("create_customer", [customer_id, nombre, apellido, credito, correo, ingresos, region])
+            connection.commit()
+            print("Cliente creado exitosamente")
+        else:
+            print("El cliente ya existe, no se pudo crear")
 
         cursor.close()
         connection.close()
 
-        print("Cliente creado exitosamente")
-
     except oracledb.DatabaseError as e:
         error = e.args[0]
         print("Error al conectar a Oracle:", error)
+
 
 tk.Label(customers_create, text="ID Cliente:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
 C_C_CustomerID = tk.Entry(customers_create)
