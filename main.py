@@ -24,13 +24,12 @@ def clear_entries(frame):
                 widget.insert(0, datetime.datetime.now().strftime("%S"))
 
 def conexion():
-    usuario = "C##SERVERA"
-    contraseña = "ADMIN"
+    usuario = "SYSTEM"
+    contraseña = "12345"
     host = "localhost"
     puerto = "1521"
     servicio = "FREE"
     try:
-        # Establecer la conexión a la base de datos
         connection = oracledb.connect(user=usuario, password=contraseña, dsn=f"{host}:{puerto}/{servicio}")
         print("Conexión exitosa a la base de datos.")
         return connection
@@ -41,28 +40,27 @@ def conexion():
 def apply_custom_styles():
     style = ttk.Style()
     
-    # Configuración del estilo de los widgets
-    style.theme_use('clam')  # Utiliza el tema 'clam' de ttk, que es más neutral en términos de color
-    style.configure('.', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  # Cambia la fuente y colores
-    
-    # Configuración específica de algunos widgets
-    style.configure('TButton', font=('Helvetica', 12), foreground='white', background='#007ACC')  # Estilo para los botones
-    style.map('TButton', background=[('active', '#005f91')])  # Cambia el color de fondo al pasar el ratón por encima
-    
-    # Estilos para otras clases de widgets
-    style.configure('TEntry', font=('Helvetica', 12), fieldbackground='white', foreground='black')  # Estilo para las entradas
-    style.configure('TNotebook', tabposition='n', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  # Estilo para los notebooks
-    style.configure('TFrame', background='#F0F0F0')  # Estilo para los frames
 
-# Crear la ventana principal
+    style.theme_use('clam') 
+    style.configure('.', font=('Helvetica', 12), foreground='black', background='#F0F0F0')
+    
+
+    style.configure('TButton', font=('Helvetica', 12), foreground='white', background='#007ACC')  
+    style.map('TButton', background=[('active', '#005f91')]) 
+    
+
+    style.configure('TEntry', font=('Helvetica', 12), fieldbackground='white', foreground='black') 
+    style.configure('TNotebook', tabposition='n', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  
+    style.configure('TFrame', background='#F0F0F0')
+
+
 root = tk.Tk()
 root.title("Proyecto 2")
 root.geometry("1055x600")
-# Crear el notebook principal
+
 main_notebook = ttk.Notebook(root)
 main_notebook.pack(fill='both', expand=True)
 
-# Crear las pestañas principales y sus notebooks secundarios
 
 # CUSTOMERS
 customers_frame = ttk.Frame(main_notebook)
@@ -140,19 +138,18 @@ def create_customer():
     region = C_C_Region.get()
     try:
         
-        # Conectarse a Oracle
+
         connection = conexion()
         if connection is None:
             return
 
-        # Llamar al procedimiento almacenado
         cursor = connection.cursor()
         cursor.callproc("create_customer", [customer_id, nombre, apellido, credito, correo, ingresos, region])
 
-        # Hacer commit de la transacción
+
         connection.commit()
 
-        # Cerrar el cursor y la conexión
+
         cursor.close()
         connection.close()
 
@@ -201,7 +198,6 @@ C_C_BTNLimpiar.grid(row=7, column=1, pady=20)
 
 # ==================================== CUSTOMERS (READ) ==================================== #
 
-# Función para listar todos los clientes
 def list_all_customers():
     try:
         connection = conexion()
@@ -212,7 +208,6 @@ def list_all_customers():
 
         p_cursor = cursor.var(oracledb.CURSOR)
 
-        # Ejecutar el procedimiento almacenado
         cursor.callproc("list_all_customers", [p_cursor])
 
         result = p_cursor.getvalue().fetchall()
@@ -223,22 +218,19 @@ def list_all_customers():
         error = e.args[0]
         print("Error al conectar a Oracle:", error)
         return None
-
-# Función para mostrar los clientes en la tabla
+    
 def show_customers():
-    # Obtener los clientes
+
     customers = list_all_customers()
 
     if customers:
-        # Limpiar la tabla
+
         for row in C_R_Tabla.get_children():
             C_R_Tabla.delete(row)
 
-        # Agregar los clientes a la tabla
         for customer in customers:
             C_R_Tabla.insert("", "end", values=customer)
 
-# Tabla de Clientes
 C_R_Tabla = ttk.Treeview(customers_read, columns=("ID Cliente", "Nombre", "Apellido", "Crédito", "Correo", "Ingresos", "Región"), show="headings")
 C_R_Tabla.heading("ID Cliente", text="ID Cliente")
 C_R_Tabla.heading("Nombre", text="Nombre")
@@ -249,17 +241,14 @@ C_R_Tabla.heading("Ingresos", text="Ingresos")
 C_R_Tabla.heading("Región", text="Región")
 C_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
-# Ajustar el ancho de las columnas
-column_widths = [120, 120, 120, 100, 200, 100, 100]  # Ancho de las columnas
+column_widths = [120, 120, 120, 100, 200, 100, 100] 
 for col, width in zip(C_R_Tabla["columns"], column_widths):
     C_R_Tabla.column(col, width=width)
 
-# Barra de desplazamiento vertical
 scrollbar = ttk.Scrollbar(customers_read, orient="vertical", command=C_R_Tabla.yview)
 scrollbar.grid(row=0, column=1, sticky="ns")
 C_R_Tabla.configure(yscrollcommand=scrollbar.set)
 
-# Botón para cargar/actualizar clientes
 load_button = ttk.Button(customers_read, text="Cargar/Actualizar Clientes", command=show_customers)
 load_button.grid(row=1, column=0, sticky="ew")
 
@@ -333,19 +322,15 @@ def update_customer():
     region = C_U_Region.get()
     
     try:
-        # Conectarse a Oracle
         connection = conexion()
         if connection is None:
             return
 
-        # Llamar al procedimiento almacenado
         cursor = connection.cursor()
         cursor.callproc("update_customer", [customer_id, nombre, apellido, credito, correo, ingresos, region])
 
-        # Hacer commit de la transacción
         connection.commit()
 
-        # Cerrar el cursor y la conexión
         cursor.close()
         connection.close()
 
@@ -356,7 +341,6 @@ def update_customer():
         error = e.args[0]
         print("Error al conectar a Oracle:", error)
 
-        # Mostrar mensaje de error en una ventana emergente
         messagebox.showerror("Error", f"Error al actualizar el cliente: {error}")
 
 tk.Label(customers_update, text="ID Cliente:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
@@ -431,15 +415,12 @@ def delete_customer():
         result = cursor.fetchone()
         
         if result:
-            # Mostrar los datos del cliente
             msg = f"ID: {result[0]}\nNombre: {result[1]} {result[2]}\nCrédito: {result[3]}\nCorreo: {result[4]}\nIngresos: {result[5]}\nRegión: {result[6]}"
             confirm_delete = messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que quieres eliminar el siguiente registro?\n\n{msg}")
             if confirm_delete:
-                # Eliminar el cliente
                 cursor.callproc("delete_customer", [customer_id])
                 connection.commit()
                 messagebox.showinfo("Información", f"Cliente con ID {customer_id} eliminado correctamente.")
-                # Limpiar campos
                 clear_entries(customers_delete)
         else:
             messagebox.showinfo("Información", "No se encontró ningún cliente con ese ID.")
@@ -463,41 +444,32 @@ C_D_BTNLimpiar.grid(row=2, column=1, pady=20)
 # ===================================== ORDER (CREATE) ===================================== #
 
 def get_full_date():
-    # Obtener la fecha del widget DateEntry
     date_obj = O_C_Date.get_date()
     
-    # Obtener la hora del Spinbox
     hour = int(O_C_Hour.get())
     minute = int(O_C_Minute.get())
     second = int(O_C_Second.get())
-    
-    # Obtener la fracción de segundos actual
+
     current_time = datetime.datetime.now()
     milliseconds = current_time.microsecond // 1000
-    
-    # Formatear la fecha en el formato DD-MON-RR
+
     formatted_date = date_obj.strftime("%d-%b-%y")
     
-    # Formatear la hora en el formato HH.MI.SS.FF AM
     am_pm = "AM" if hour < 12 else "PM"
     hour %= 12
     if hour == 0:
         hour = 12
     formatted_time = f"{hour:02d}.{minute:02d}.{second:02d}.{milliseconds:06d} {am_pm}"
     
-    # Combinar la fecha y la hora en un solo string
     full_date = f"{formatted_date} {formatted_time}"
     
     return full_date
 
 
-# Función para crear una orden utilizando un procedimiento almacenado
 def create_order():
-    # Conexión a la base de datos Oracle
     connection = conexion()
     cursor = connection.cursor()
 
-    # Llamada al procedimiento almacenado
     try:
         cursor.callproc("create_order", [
             O_C_OrderID.get(),
@@ -612,7 +584,6 @@ def list_all_orders():
 
         p_cursor = cursor.var(oracledb.CURSOR)
 
-        # Ejecutar el procedimiento almacenado
         cursor.callproc("list_orders", [p_cursor])
 
         result = p_cursor.getvalue().fetchall()
@@ -625,27 +596,21 @@ def list_all_orders():
         return None
     
 def show_orders():
-    # Obtener las órdenes
     orders = list_all_orders()
 
     if orders:
-        # Limpiar la tabla
         for row in O_R_Tabla.get_children():
             O_R_Tabla.delete(row)
 
-        # Agregar las órdenes a la tabla
         for order in orders:
             O_R_Tabla.insert("", "end", values=order)
 
-# Tabla de Órdenes
 O_R_Tabla = ttk.Treeview(orders_read, columns=("Order ID", "Fecha", "Modo", "Customer ID", "Estado", "Total", "Sales Rep ID", "Promotion ID"), show="headings")
 
-# Reducir el ancho de las columnas
-column_widths = [100, 120, 60, 80, 60, 80, 80, 100]  # Anchos de las columnas
+column_widths = [100, 120, 60, 80, 60, 80, 80, 100] 
 for column, width in zip(O_R_Tabla["columns"], column_widths):
     O_R_Tabla.column(column, width=width)
 
-# Configurar encabezados
 O_R_Tabla.heading("Order ID", text="Order ID")
 O_R_Tabla.heading("Fecha", text="Fecha")
 O_R_Tabla.heading("Modo", text="Modo")
@@ -657,7 +622,6 @@ O_R_Tabla.heading("Promotion ID", text="Promotion ID")
 
 O_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
-# Agregar barra de desplazamiento vertical
 scrollbar = ttk.Scrollbar(orders_read, orient="vertical", command=O_R_Tabla.yview)
 scrollbar.grid(row=0, column=1, sticky="ns")
 O_R_Tabla.configure(yscrollcommand=scrollbar.set)
@@ -670,7 +634,6 @@ load_button.grid(row=1, column=0, sticky="ew")
 # ===================================== ORDER (UPDATE) ===================================== #
 
 def update_order():
-    # Obtener los valores de los campos de entrada
     order_id = int(O_U_OrderID.get())
     order_date = datetime.datetime.strptime(O_U_Date.get(), "%d/%m/%y")
     order_mode = O_U_Modo.get()
@@ -680,52 +643,39 @@ def update_order():
     sales_rep_id = int(O_U_Representate.get())
     promotion_id = int(O_U_Promocion.get())
 
-    # Establecer la conexión a la base de datos Oracle
     connection = conexion()
 
     try:
-        # Crear un cursor para ejecutar consultas
         cursor = connection.cursor()
 
-        # Ejecutar el procedimiento almacenado de actualización
         cursor.callproc("update_order", [order_id, order_date, order_mode, customer_id, order_status, order_total, sales_rep_id, promotion_id])
 
-        # Confirmar la transacción
         connection.commit()
 
-        # Mostrar un mensaje de éxito
         messagebox.showinfo("Éxito", "La orden se ha actualizado correctamente en la base de datos.")
 
     except oracledb.DatabaseError as e:
-        # En caso de error, mostrar un mensaje de error
         messagebox.showerror("Error", "Ocurrió un error al actualizar la orden en la base de datos:\n{}".format(str(e)))
 
     finally:
-        # Cerrar el cursor y la conexión
         if cursor:
             cursor.close()
         if connection:
             connection.close()
 
 def search_order():
-    # Obtener el ID de orden ingresado por el usuario
     order_id = int(O_U_OrderID.get())
 
-    # Establecer la conexión a la base de datos Oracle
     connection = conexion()
 
     try:
-        # Crear un cursor para ejecutar consultas
         cursor = connection.cursor()
 
-        # Ejecutar la consulta para obtener los detalles de la orden
         cursor.execute("SELECT ORDER_DATE, ORDER_MODE, CUSTOMER_ID, ORDER_STATUS, ORDER_TOTAL, SALES_REP_ID, PROMOTION_ID FROM orders WHERE ORDER_ID = :order_id", {'order_id': order_id})
 
-        # Obtener los resultados de la consulta
         order_details = cursor.fetchone()
 
         if order_details:
-            # Rellenar los campos con los datos obtenidos de la consulta
             O_U_Date.delete(0, tk.END)
             O_U_Date.insert(0, order_details[0].strftime('%d/%m/%y'))
             O_U_Modo.set(order_details[1])
@@ -739,44 +689,38 @@ def search_order():
             O_U_Promocion.delete(0, tk.END)
             O_U_Promocion.insert(0, order_details[6])
         else:
-            # Mostrar un mensaje si no se encontró ninguna orden con el ID proporcionado
             messagebox.showinfo("Información", f"No se encontró ninguna orden con el ID {order_id}.")
 
     except oracledb.DatabaseError as e:
-        # En caso de error, mostrar un mensaje de error
         messagebox.showerror("Error", "Ocurrió un error al buscar la orden en la base de datos:\n{}".format(str(e)))
 
     finally:
-        # Cerrar el cursor y la conexión
         if cursor:
             cursor.close()
         if connection:
             connection.close()
 
-# ID Orden
 tk.Label(orders_update, text="ID Orden:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
 O_U_OrderID = tk.Entry(orders_update)
 O_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
-# Agregar un botón de búsqueda al lado del campo Order ID
 search_button = tk.Button(orders_update, text="BUSCAR", command=search_order)
-search_button.grid(row=0, column=1, padx=150, sticky='w')  # Ajusta sticky a 'w' para que el botón esté a la izquierda del campo Order ID
+search_button.grid(row=0, column=1, padx=150, sticky='w') 
 
-# Fecha
+
 tk.Label(orders_update, text="Fecha:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
 O_U_Date = DateEntry(orders_update, date_pattern='dd/MM/yy')
 O_U_Date.grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-# Hora
+
 time_frame = tk.Frame(orders_update)
 time_frame.grid(row=2, column=1, padx=10, pady=10, sticky='w')
 
-# Hora
+
 tk.Label(orders_update, text="Hora:").grid(row=2, column=0, padx=10, pady=10, sticky='e')  # Cambiado a columna 0
 time_frame = tk.Frame(orders_update)
 time_frame.grid(row=2, column=1, padx=10, pady=10, sticky='w')
 
-# Espacio en blanco ajustado para alinear con las otras etiquetas
 tk.Label(time_frame, text="   ").grid(row=0, column=0, padx=5)  
 O_U_Hour = tk.Spinbox(time_frame, from_=0, to=23, wrap=True, format="%02.0f", width=3)
 O_U_Hour.grid(row=0, column=1, padx=5)
@@ -842,39 +786,32 @@ O_U_BTNLimpiar.grid(row=9, column=1, pady=20)
 
 # ===================================== ORDER (DELETE) ===================================== #
 def delete_order():
-    # Obtener el ID de orden ingresado por el usuario
     order_id = int(O_D_OrderID.get())
 
-    # Establecer la conexión a la base de datos Oracle
     connection = conexion()
 
     try:
-        # Crear un cursor para ejecutar consultas
         cursor = connection.cursor()
 
-        # Consultar la orden que se va a eliminar
         cursor.execute("SELECT * FROM orders WHERE ORDER_ID = :order_id", {'order_id': order_id})
         order_data = cursor.fetchone()
 
-        # Mostrar un mensaje con los datos de la orden que se va a eliminar
         if order_data:
             order_info = f"Registro a eliminar:\nID Orden: {order_data[0]}\nFecha: {order_data[1].strftime('%d/%m/%y')}\nModo: {order_data[2]}\nID Cliente: {order_data[3]}\nEstatus: {order_data[4]}\nTotal: {order_data[5]}\nID Representante: {order_data[6]}\nCódigo de Promoción: {order_data[7]}"
             if messagebox.askokcancel("Confirmar eliminación", order_info + "\n\n¿Estás seguro que deseas eliminar esta orden?"):
-                # Ejecutar el procedimiento almacenado para eliminar la orden
+
                 cursor.callproc("delete_order", [order_id])
-                # Confirmar la transacción
+
                 connection.commit()
-                # Mostrar un mensaje de éxito
+
                 messagebox.showinfo("Éxito", "La orden ha sido eliminada correctamente.")
         else:
             messagebox.showinfo("Información", f"No se encontró ninguna orden con el ID {order_id}.")
 
     except oracledb.DatabaseError as e:
-        # En caso de error, mostrar un mensaje de error
         messagebox.showerror("Error", "Ocurrió un error al eliminar la orden en la base de datos:\n{}".format(str(e)))
 
     finally:
-        # Cerrar el cursor y la conexión
         if cursor:
             cursor.close()
         if connection:
@@ -1066,15 +1003,11 @@ def update_product():
         connection = conexion()
         if connection is None:
             return
-
-        # Llamar al procedimiento almacenado para actualizar el producto
         cursor = connection.cursor()
         cursor.callproc("update_product_information", [product_id, product_name, product_description, category_id, weight_class, warranty_period, supplier_id, product_status, list_price, min_price, catalog_url])
 
-        # Hacer commit de la transacción
         connection.commit()
 
-        # Cerrar el cursor y la conexión
         cursor.close()
         connection.close()
 
@@ -1085,7 +1018,6 @@ def update_product():
         error = e.args[0]
         print("Error al conectar a Oracle:", error)
 
-        # Mostrar mensaje de error en una ventana emergente
         messagebox.showerror("Error", f"Error al actualizar el producto: {error}")
 
 
@@ -1108,7 +1040,8 @@ P_U_CategoryID = tk.Entry(products_update)
 P_U_CategoryID.grid(row=3, column=1, padx=10, pady=10, sticky='w')
 
 tk.Label(products_update, text="Weight Class:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
-P_U_WeightClass = tk.Entry(products_update)
+P_C_WeightClass = tk.Entry(products_update)
+P_U_WeightClass = ttk.Combobox(products_update, values=[1, 0], width=5, state="readonly")
 P_U_WeightClass.grid(row=4, column=1, padx=10, pady=10, sticky='w')
 
 tk.Label(products_update, text="Warranty Period:").grid(row=5, column=0, padx=10, pady=10, sticky='e')
@@ -1156,7 +1089,6 @@ def list_all_products():
 
         p_cursor = cursor.var(oracledb.CURSOR)
 
-        # Ejecutar el procedimiento almacenado
         cursor.callproc("list_product_information", [p_cursor])
 
         result = p_cursor.getvalue().fetchall()
@@ -1169,19 +1101,15 @@ def list_all_products():
         return None
     
 def show_products():
-    # Obtener los productos
     products = list_all_products()
 
     if products:
-        # Limpiar la tabla
         for row in P_R_Tabla.get_children():
             P_R_Tabla.delete(row)
 
-        # Agregar los productos a la tabla
         for product in products:
             P_R_Tabla.insert("", "end", values=product)
 
-# Tabla de Productos
 P_R_Tabla = ttk.Treeview(products_read, columns=("Product ID", "Product Name", "Product Description", "Category ID", "Weight Class", "Warranty Period", "Supplier ID", "Product Status", "List Price", "Min Price", "Catalog URL"), show="headings")
 P_R_Tabla.heading("Product ID", text="ID")
 P_R_Tabla.heading("Product Name", text="Nombre")
@@ -1196,17 +1124,14 @@ P_R_Tabla.heading("Min Price", text="Precio Min.")
 P_R_Tabla.heading("Catalog URL", text="URL")
 P_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
-# Ajustar el ancho de las columnas
-column_widths = [60, 150, 150, 60, 60, 60, 100, 120, 60, 60, 150]  # Ancho de las columnas
+column_widths = [60, 150, 150, 60, 60, 60, 100, 120, 60, 60, 150]  
 for col, width in zip(P_R_Tabla["columns"], column_widths):
     P_R_Tabla.column(col, width=width)
 
-# Barra de desplazamiento vertical
 scrollbar = ttk.Scrollbar(products_read, orient="vertical", command=P_R_Tabla.yview)
 scrollbar.grid(row=0, column=1, sticky="ns")
 P_R_Tabla.configure(yscrollcommand=scrollbar.set)
 
-# Botón para cargar/actualizar productos
 load_button = ttk.Button(products_read, text="Cargar/Actualizar Productos", command=show_products)
 load_button.grid(row=1, column=0, sticky="ew")
 
@@ -1244,11 +1169,9 @@ def delete_product():
             msg = f"ID: {result[0]}\nNombre: {result[1]}\nDescripción: {result[2]}\nCategoría ID: {result[3]}\nClase de Peso: {result[4]}\nPeriodo de Garantía: {result[5]}\nID del Proveedor: {result[6]}\nEstado del Producto: {result[7]}\nPrecio de Lista: {result[8]}\nPrecio Mínimo: {result[9]}\nURL del Catálogo: {result[10]}"
             confirm_delete = messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que quieres eliminar el siguiente producto?\n\n{msg}")
             if confirm_delete:
-                # Eliminar el producto de la base de datos
                 cursor.callproc("delete_product_information", [product_id])
                 connection.commit()
                 messagebox.showinfo("Información", f"Producto con ID {product_id} eliminado correctamente.")
-                # Limpiar los campos después de la eliminación
                 clear_entries(products_delete)
         else:
             messagebox.showinfo("Información", "No se encontró ningún producto con ese ID.")
@@ -1280,19 +1203,15 @@ def create_order_item():
     quantity = OI_C_Quantity.get()
     
     try:
-        # Conectarse a Oracle
         connection = conexion()
         if connection is None:
             return
 
-        # Llamar al procedimiento almacenado para crear el elemento del pedido
         cursor = connection.cursor()
         cursor.callproc("create_order_item", [order_id, line_item_id, product_id, unit_price, quantity])
 
-        # Hacer commit de la transacción
         connection.commit()
 
-        # Cerrar el cursor y la conexión
         cursor.close()
         connection.close()
 
@@ -1340,7 +1259,6 @@ def list_all_order_items():
 
         oi_cursor = cursor.var(oracledb.CURSOR)
 
-        # Ejecutar el procedimiento almacenado
         cursor.callproc("list_order_items", [oi_cursor])
 
         result = oi_cursor.getvalue().fetchall()
@@ -1353,19 +1271,15 @@ def list_all_order_items():
         return None
     
 def show_order_items():
-    # Obtener los elementos del pedido
     order_items = list_all_order_items()
 
     if order_items:
-        # Limpiar la tabla
         for row in OI_R_Tabla.get_children():
             OI_R_Tabla.delete(row)
 
-        # Agregar los elementos del pedido a la tabla
         for order_item in order_items:
             OI_R_Tabla.insert("", "end", values=order_item)
 
-# Tabla de Elementos del Pedido
 OI_R_Tabla = ttk.Treeview(items_read, columns=("Order ID", "Line Item ID", "Product ID", "Unit Price", "Quantity"), show="headings")
 OI_R_Tabla.heading("Order ID", text="ID Orden")
 OI_R_Tabla.heading("Line Item ID", text="ID Objeto")
@@ -1374,17 +1288,14 @@ OI_R_Tabla.heading("Unit Price", text="Precio")
 OI_R_Tabla.heading("Quantity", text="Cantidad")
 OI_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
-# Ajustar el ancho de las columnas
-column_widths = [100, 100, 100, 100, 100]  # Ancho de las columnas
+column_widths = [100, 100, 100, 100, 100]
 for col, width in zip(OI_R_Tabla["columns"], column_widths):
     OI_R_Tabla.column(col, width=width)
 
-# Barra de desplazamiento vertical
 scrollbar = ttk.Scrollbar(items_read, orient="vertical", command=OI_R_Tabla.yview)
 scrollbar.grid(row=0, column=1, sticky="ns")
 OI_R_Tabla.configure(yscrollcommand=scrollbar.set)
 
-# Botón para cargar/actualizar elementos del pedido
 load_button = ttk.Button(items_read, text="Cargar/Actualizar Elementos del Pedido", command=show_order_items)
 load_button.grid(row=1, column=0, sticky="ew")
 
@@ -1440,19 +1351,15 @@ def update_order_item():
     quantity = OI_U_Quantity.get()
     
     try:
-        # Conectarse a Oracle
         connection = conexion()
         if connection is None:
             return
 
-        # Llamar al procedimiento almacenado para actualizar el elemento del pedido
         cursor = connection.cursor()
         cursor.callproc("update_order_item", [order_id, line_item_id, product_id, unit_price, quantity])
 
-        # Hacer commit de la transacción
         connection.commit()
 
-        # Cerrar el cursor y la conexión
         cursor.close()
         connection.close()
 
@@ -1463,11 +1370,9 @@ def update_order_item():
         error = e.args[0]
         print("Error al conectar a Oracle:", error)
 
-        # Mostrar mensaje de error en una ventana emergente
         messagebox.showerror("Error", f"Error al actualizar el elemento del pedido: {error}")
 
 
-# Etiquetas y campos de entrada para Order ID, Line Item ID, Product ID, Unit Price y Quantity
 tk.Label(items_update, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
 OI_U_OrderID = tk.Entry(items_update)
 OI_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
@@ -1491,7 +1396,6 @@ tk.Label(items_update, text="Quantity:").grid(row=4, column=0, padx=10, pady=10,
 OI_U_Quantity = tk.Entry(items_update)
 OI_U_Quantity.grid(row=4, column=1, padx=10, pady=10, sticky='w')
 
-# Botones para actualizar y limpiar campos
 OI_U_BTNActualizar = tk.Button(items_update, text="ACTUALIZAR", command=update_order_item)
 OI_U_BTNActualizar.grid(row=5, column=0, pady=20)
 
@@ -1524,15 +1428,12 @@ def delete_order_item():
         result = cursor.fetchone()
         
         if result:
-            # Mostrar los datos del elemento del pedido
             msg = f"Order ID: {result[0]}\nLine Item ID: {result[1]}\nProduct ID: {result[2]}\nUnit Price: {result[3]}\nQuantity: {result[4]}"
             confirm_delete = messagebox.askyesno("Confirmar Eliminación", f"¿Estás seguro de que quieres eliminar el siguiente registro?\n\n{msg}")
             if confirm_delete:
-                # Eliminar el elemento del pedido de la base de datos
                 cursor.callproc("delete_order_item", [order_id, line_item_id])
                 connection.commit()
                 messagebox.showinfo("Información", f"Elemento del pedido con Order ID {order_id} y Line Item ID {line_item_id} eliminado correctamente.")
-                # Limpiar los campos después de la eliminación
                 clear_entries(items_delete)
         else:
             messagebox.showinfo("Información", "No se encontró ningún elemento del pedido con ese Order ID y Line Item ID.")
@@ -1542,7 +1443,6 @@ def delete_order_item():
         if connection:
             connection.close()
 
-# Etiquetas y campos de entrada para Order ID y Line Item ID
 tk.Label(items_delete, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
 O_D_OrderID = tk.Entry(items_delete)
 O_D_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
@@ -1551,7 +1451,6 @@ tk.Label(items_delete, text="Line Item ID:").grid(row=1, column=0, padx=10, pady
 O_D_LineItemID = tk.Entry(items_delete)
 O_D_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-# Botones para eliminar y limpiar campos
 O_D_BTNEliminar = tk.Button(items_delete, text="ELIMINAR", command=delete_order_item)
 O_D_BTNEliminar.grid(row=2, column=0, pady=20)
 
@@ -1577,10 +1476,27 @@ P_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+P_D_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+O_D_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_Quantity.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_Quantity.config(validate="key", validatecommand=(validation, "%P"))
+P_C_SupplierID.config(validate="key", validatecommand=(validation, "%P"))
+P_U_SupplierID.config(validate="key", validatecommand=(validation, "%P"))
+P_C_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
+P_U_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
+P_C_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
+P_U_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
+O_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 
 def val_category_id(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 2 or entry_text == ""
-validation = root.register(val_customer_id)
+validation = root.register(val_category_id)
 P_C_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
 P_U_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
 
