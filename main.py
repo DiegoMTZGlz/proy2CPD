@@ -24,8 +24,8 @@ def clear_entries(frame):
                 widget.insert(0, datetime.datetime.now().strftime("%S"))
 
 def conexion():
-    usuario = "SYSTEM"
-    contraseña = "12345"
+    usuario = "C##SERVERA"
+    contraseña = "ADMIN"
     host = "localhost"
     puerto = "1521"
     servicio = "FREE"
@@ -40,15 +40,12 @@ def conexion():
 def apply_custom_styles():
     style = ttk.Style()
     
-
     style.theme_use('clam') 
     style.configure('.', font=('Helvetica', 12), foreground='black', background='#F0F0F0')
-    
 
     style.configure('TButton', font=('Helvetica', 12), foreground='white', background='#007ACC')  
     style.map('TButton', background=[('active', '#005f91')]) 
     
-
     style.configure('TEntry', font=('Helvetica', 12), fieldbackground='white', foreground='black') 
     style.configure('TNotebook', tabposition='n', font=('Helvetica', 12), foreground='black', background='#F0F0F0')  
     style.configure('TFrame', background='#F0F0F0')
@@ -60,7 +57,6 @@ root.geometry("1055x600")
 
 main_notebook = ttk.Notebook(root)
 main_notebook.pack(fill='both', expand=True)
-
 
 # CUSTOMERS
 customers_frame = ttk.Frame(main_notebook)
@@ -151,17 +147,16 @@ def create_customer():
         if count == 0:
             cursor.callproc("create_customer", [customer_id, nombre, apellido, credito, correo, ingresos, region])
             connection.commit()
-            print("Cliente creado exitosamente")
+            messagebox.showinfo("AGREGAR", "Cliente creado exitosamente")
         else:
-            print("El cliente ya existe, no se pudo crear")
+            messagebox.showwarning("Información", "El cliente ya existe, no se pudo crear")
 
         cursor.close()
         connection.close()
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
-
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
 
 tk.Label(customers_create, text="ID Cliente:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
 C_C_CustomerID = tk.Entry(customers_create)
@@ -220,7 +215,7 @@ def list_all_customers():
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
         return None
     
 def show_customers():
@@ -263,7 +258,7 @@ load_button.grid(row=1, column=0, sticky="ew")
 def search_customer():
     connection = conexion()
     if connection is None:
-        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        messagebox.showerror("ERROR", "No se pudo conectar a la base de datos.")
         return
 
     customer_id = C_U_CustomerID.get()
@@ -338,7 +333,7 @@ def update_customer():
         cursor.close()
         connection.close()
 
-        print("Cliente actualizado exitosamente")
+        messagebox.showinfo("ACTUALIZAR", "Cliente actualizado exitosamente")
         clear_entries(customers_update)
 
     except oracledb.DatabaseError as e:
@@ -486,10 +481,10 @@ def create_order():
             O_C_Promocion.get()
         ])
         connection.commit()
-        print("¡Orden creada con éxito!")
+        messagebox.showinfo("Información", "Orden creada con éxito!")
     except oracledb.DatabaseError as e:
         error, = e.args
-        print("Error al crear la orden:", error.message)
+        messagebox.showerror("ERROR", "Error al crear la orden:", error.message)
     finally:
         cursor.close()
         connection.close()
@@ -596,7 +591,7 @@ def list_all_orders():
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
         return None
     
 def show_orders():
@@ -611,18 +606,18 @@ def show_orders():
 
 O_R_Tabla = ttk.Treeview(orders_read, columns=("Order ID", "Fecha", "Modo", "Customer ID", "Estado", "Total", "Sales Rep ID", "Promotion ID"), show="headings")
 
-column_widths = [100, 120, 60, 80, 60, 80, 80, 100] 
+column_widths = [100, 120, 60, 80, 60, 80, 100, 100] 
 for column, width in zip(O_R_Tabla["columns"], column_widths):
     O_R_Tabla.column(column, width=width)
 
-O_R_Tabla.heading("Order ID", text="Order ID")
+O_R_Tabla.heading("Order ID", text="ID Orden")
 O_R_Tabla.heading("Fecha", text="Fecha")
 O_R_Tabla.heading("Modo", text="Modo")
-O_R_Tabla.heading("Customer ID", text="Customer ID")
+O_R_Tabla.heading("Customer ID", text="ID Cliente")
 O_R_Tabla.heading("Estado", text="Estado")
 O_R_Tabla.heading("Total", text="Total")
-O_R_Tabla.heading("Sales Rep ID", text="Sales Rep ID")
-O_R_Tabla.heading("Promotion ID", text="Promotion ID")
+O_R_Tabla.heading("Sales Rep ID", text="Representante")
+O_R_Tabla.heading("Promotion ID", text="Promoción")
 
 O_R_Tabla.grid(row=0, column=0, sticky="nsew")
 
@@ -656,7 +651,7 @@ def update_order():
 
         connection.commit()
 
-        messagebox.showinfo("Éxito", "La orden se ha actualizado correctamente en la base de datos.")
+        messagebox.showinfo("ACTUALIZAR", "Orden actualizada correctamente.")
 
     except oracledb.DatabaseError as e:
         messagebox.showerror("Error", "Ocurrió un error al actualizar la orden en la base de datos:\n{}".format(str(e)))
@@ -711,17 +706,14 @@ O_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 search_button = tk.Button(orders_update, text="BUSCAR", command=search_order)
 search_button.grid(row=0, column=1, padx=150, sticky='w') 
 
-
 tk.Label(orders_update, text="Fecha:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
 O_U_Date = DateEntry(orders_update, date_pattern='dd/MM/yy')
 O_U_Date.grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-
 time_frame = tk.Frame(orders_update)
 time_frame.grid(row=2, column=1, padx=10, pady=10, sticky='w')
 
-
-tk.Label(orders_update, text="Hora:").grid(row=2, column=0, padx=10, pady=10, sticky='e')  # Cambiado a columna 0
+tk.Label(orders_update, text="Hora:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
 time_frame = tk.Frame(orders_update)
 time_frame.grid(row=2, column=1, padx=10, pady=10, sticky='w')
 
@@ -808,7 +800,7 @@ def delete_order():
 
                 connection.commit()
 
-                messagebox.showinfo("Éxito", "La orden ha sido eliminada correctamente.")
+                messagebox.showinfo("ELIMINAR", "La orden se eliminó correctamente.")
         else:
             messagebox.showinfo("Información", f"No se encontró ninguna orden con el ID {order_id}.")
 
@@ -865,11 +857,11 @@ def create_product():
         cursor.close()
         connection.close()
 
-        print("Producto creado exitosamente")
+        messagebox.showinfo("AGREGAR", "Producto creado exitosamente")
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
 
 
 tk.Label(products_create, text="Product ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
@@ -932,7 +924,7 @@ P_C_BTNLimpiar.grid(row=11, column=1, pady=20)
 def search_product():
     connection = conexion()
     if connection is None:
-        messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
+        messagebox.showerror("ERROR", "No se pudo conectar a la base de datos.")
         return
 
     product_id = P_U_ProductID.get()
@@ -984,7 +976,7 @@ def search_product():
         else:
             messagebox.showinfo("Información", "No se encontró ningún producto con ese ID.")
     except oracledb.DatabaseError as error:
-        messagebox.showerror("Error", f"Error al buscar el producto: {error}")
+        messagebox.showerror("ERROR", f"Error al buscar el producto: {error}")
     finally:
         if connection:
             connection.close()
@@ -1015,12 +1007,12 @@ def update_product():
         cursor.close()
         connection.close()
 
-        print("Producto actualizado exitosamente")
+        messagebox.showerror("ACTUALIZAR", "Producto actualizado exitosamente")
         clear_entries(products_update)
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
 
         messagebox.showerror("Error", f"Error al actualizar el producto: {error}")
 
@@ -1219,11 +1211,11 @@ def create_order_item():
         cursor.close()
         connection.close()
 
-        print("Elemento del pedido creado exitosamente")
+        messagebox.showinfo("AGREGAR", "Producto agregado al pedido.")
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
 
 
 tk.Label(items_create, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
@@ -1249,6 +1241,9 @@ OI_C_Quantity.grid(row=4, column=1, padx=10, pady=10, sticky='w')
 OI_C_BTNCrear = tk.Button(items_create, text="CREAR", command=create_order_item)
 OI_C_BTNCrear.grid(row=5, column=0, pady=20)
 
+OI_C_BTNLimpiar = tk.Button(items_create, text="LIMPIAR", command=lambda: clear_entries(items_create))
+OI_C_BTNLimpiar.grid(row=5, column=1, pady=20)
+
 # ======================================================================================== #
 
 # ==================================== ITEMS (READ) ====================================== #
@@ -1271,7 +1266,7 @@ def list_all_order_items():
 
     except oracledb.DatabaseError as e:
         error = e.args[0]
-        print("Error al conectar a Oracle:", error)
+        messagebox.showerror("ERROR", "Error al conectar a Oracle:", error)
         return None
     
 def show_order_items():
@@ -1366,8 +1361,8 @@ def update_order_item():
 
         cursor.close()
         connection.close()
-
-        print("Elemento del pedido actualizado exitosamente")
+        
+        messagebox.showerror("ACTUALIZAR", "El producto del pedido fue actualizado.")
         clear_entries(items_update)
 
     except oracledb.DatabaseError as e:
@@ -1382,7 +1377,6 @@ OI_U_OrderID = tk.Entry(items_update)
 OI_U_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 OI_U_BTNBuscar = tk.Button(items_update, text="BUSCAR", command=search_order_item)
 OI_U_BTNBuscar.grid(row=0, column=2, columnspan=2, pady=10)
-
 
 tk.Label(items_update, text="Line Item ID:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
 OI_U_LineItemID = tk.Entry(items_update)
@@ -1475,29 +1469,14 @@ O_C_Promocion.config(validate="key", validatecommand=(validation, "%P"))
 O_U_CustomerID.config(validate="key", validatecommand=(validation, "%P"))
 O_U_Representate.config(validate="key", validatecommand=(validation, "%P"))
 O_U_Promocion.config(validate="key", validatecommand=(validation, "%P"))
+P_C_SupplierID.config(validate="key", validatecommand=(validation, "%P"))
 P_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 P_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
-P_D_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-OI_D_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
-OI_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
-OI_U_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-OI_U_OrderID.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
-OI_C_Quantity.config(validate="key", validatecommand=(validation, "%P"))
-OI_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-OI_U_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
-OI_U_Quantity.config(validate="key", validatecommand=(validation, "%P"))
-P_C_SupplierID.config(validate="key", validatecommand=(validation, "%P"))
 P_U_SupplierID.config(validate="key", validatecommand=(validation, "%P"))
-P_C_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
-P_U_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
-P_C_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
-P_U_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
-O_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+P_D_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 
 def val_category_id(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 2 or entry_text == ""
@@ -1505,12 +1484,18 @@ validation = root.register(val_category_id)
 P_C_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
 P_U_CategoryID.config(validate="key", validatecommand=(validation, "%P"))
 
+def val_minprice(entry_text):
+    return entry_text.isdigit() and len(entry_text) <= 3 or entry_text == ""
+validation = root.register(val_minprice)
+OI_C_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_LineItemID.config(validate="key", validatecommand=(validation, "%P")) 
+OI_D_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+
 def val_weight_class(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 1 or entry_text == ""
 validation = root.register(val_customer_id)
 P_C_WeightClass.config(validate="key", validatecommand=(validation, "%P"))
 P_U_WeightClass.config(validate="key", validatecommand=(validation, "%P"))
-
 
 def val_order_id(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 12 or entry_text == ""
@@ -1518,12 +1503,23 @@ validation = root.register(val_order_id)
 O_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 O_U_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 O_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_OrderID.config(validate="key", validatecommand=(validation, "%P"))
+OI_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 
 def val_promocion(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 8 or entry_text == ""
 validation = root.register(val_promocion)
 O_C_Promocion.config(validate="key", validatecommand=(validation, "%P"))
 O_U_Promocion.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
+OI_C_Quantity.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_UnitPrice.config(validate="key", validatecommand=(validation, "%P"))
+OI_U_Quantity.config(validate="key", validatecommand=(validation, "%P"))
+P_C_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
+P_U_ListPrice.config(validate="key", validatecommand=(validation, "%P"))
+O_C_Total.config(validate="key", validatecommand=(validation, "%P"))
+O_U_Total.config(validate="key", validatecommand=(validation, "%P"))
 
 def val_order_id(entry_text):
     return entry_text.isdigit() and len(entry_text) <= 12 or entry_text == ""
@@ -1538,6 +1534,13 @@ C_C_Nombre.config(validate="key", validatecommand=(validation, "%P"))
 C_C_Apellido.config(validate="key", validatecommand=(validation, "%P"))
 C_U_Nombre.config(validate="key", validatecommand=(validation, "%P"))
 C_U_Apellido.config(validate="key", validatecommand=(validation, "%P"))
+
+def val_minprice(entry_text):
+    pattern = r'^\d{0,6}(\.\d{0,2})?$'
+    return re.match(pattern, entry_text) is not None
+validation = root.register(val_minprice)
+P_C_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
+P_U_MinPrice.config(validate="key", validatecommand=(validation, "%P"))
 
 def val_credito(entry_text):
     pattern = r'^\d{0,7}(\.\d{0,2})?$'
@@ -1558,5 +1561,6 @@ validation = root.register(val_ingresos)
 C_C_Ingresos.config(validate="key", validatecommand=(validation, "%P"))
 C_U_Ingresos.config(validate="key", validatecommand=(validation, "%P"))
 # ========================================================================================== #
+
 apply_custom_styles()
 root.mainloop()
