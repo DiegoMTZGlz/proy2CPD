@@ -1414,8 +1414,8 @@ def delete_order_item():
         messagebox.showerror("Error", "No se pudo conectar a la base de datos.")
         return
 
-    order_id = O_D_OrderID.get()
-    line_item_id = O_D_LineItemID.get()
+    order_id = OI_D_OrderID.get()
+    line_item_id = OI_D_LineItemID.get()
     
     if not order_id or not line_item_id:
         messagebox.showwarning("Advertencia", "Por favor, ingrese un Order ID y Line Item ID.")
@@ -1448,18 +1448,18 @@ def delete_order_item():
             connection.close()
 
 tk.Label(items_delete, text="Order ID:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
-O_D_OrderID = tk.Entry(items_delete)
-O_D_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+OI_D_OrderID = tk.Entry(items_delete)
+OI_D_OrderID.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
 tk.Label(items_delete, text="Line Item ID:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
-O_D_LineItemID = tk.Entry(items_delete)
-O_D_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
+OI_D_LineItemID = tk.Entry(items_delete)
+OI_D_LineItemID.grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-O_D_BTNEliminar = tk.Button(items_delete, text="ELIMINAR", command=delete_order_item)
-O_D_BTNEliminar.grid(row=2, column=0, pady=20)
+OI_D_BTNEliminar = tk.Button(items_delete, text="ELIMINAR", command=delete_order_item)
+OI_D_BTNEliminar.grid(row=2, column=0, pady=20)
 
-O_D_BTNLimpiar = tk.Button(items_delete, text="LIMPIAR", command=lambda: clear_entries(items_delete))
-O_D_BTNLimpiar.grid(row=2, column=1, pady=20)
+OI_D_BTNLimpiar = tk.Button(items_delete, text="LIMPIAR", command=lambda: clear_entries(items_delete))
+OI_D_BTNLimpiar.grid(row=2, column=1, pady=20)
 # ========================================================================================== #
 
 # ====================================== VALIDACIONES ====================================== #
@@ -1481,7 +1481,8 @@ OI_C_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
 P_D_ProductID.config(validate="key", validatecommand=(validation, "%P"))
-O_D_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+OI_D_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
+OI_D_OrderID.config(validate="key", validatecommand=(validation, "%P"))
 OI_U_LineItemID.config(validate="key", validatecommand=(validation, "%P"))
 OI_C_ProductID.config(validate="key", validatecommand=(validation, "%P"))
 OI_U_OrderID.config(validate="key", validatecommand=(validation, "%P"))
